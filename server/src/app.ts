@@ -13,14 +13,33 @@ import { errorHandler } from './middleware/error.middleware.js'
 const app = express()
 const PORT = process.env.PORT ?? 3000
 
+// Allowed origins
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.CLIENT_URL,
+].filter(Boolean) as string[]
+
 // Security & Logging
 app.use(helmet())
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (Postman, mobile apps, server-to-server)
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`))
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 )
+
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
 // Body parsing
@@ -49,6 +68,7 @@ app.use(errorHandler)
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
   console.log(`📊 Environment: ${process.env.NODE_ENV ?? 'development'}`)
+  console.log(`🌍 Allowed origins:`, allowedOrigins)
 })
 
 export default app
