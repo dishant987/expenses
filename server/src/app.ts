@@ -15,31 +15,9 @@ const PORT = process.env.PORT ?? 3000
 
 // Security & Logging
 app.use(helmet())
-const allowedOrigins = [
-  'http://localhost:5173',
-  process.env.CLIENT_URL,
-].filter(Boolean) as string[]
-
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true)
-
-      // Normalize origin and allowed list for comparison (remove trailing slashes)
-      const normalizedOrigin = origin.replace(/\/$/, '')
-      const isAllowed = allowedOrigins.some((allowed) => {
-        const normalizedAllowed = allowed.replace(/\/$/, '')
-        return normalizedAllowed === normalizedOrigin
-      })
-
-      if (isAllowed) {
-        callback(null, true)
-      } else {
-        console.error(`Blocked by CORS: ${origin}`)
-        callback(new Error('Not allowed by CORS'))
-      }
-    },
+    origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
     credentials: true,
   })
 )
