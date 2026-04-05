@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { Plus, Pencil, Trash2, Search, Loader2, ChevronLeft, ChevronRight, Shield, Trash } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Loader2, ChevronLeft, ChevronRight, Trash } from 'lucide-react'
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, useBulkDeleteUsers } from '../hooks/useUsers'
 import { useAuthStore } from '../store/authStore'
 import type { User } from '../types'
