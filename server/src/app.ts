@@ -13,11 +13,18 @@ import { errorHandler } from './middleware/error.middleware.js'
 const app = express()
 const PORT = process.env.PORT ?? 3000
 
-// Allowed origins
+// Allowed frontend origins
 const allowedOrigins = [
   'http://localhost:5173',
   process.env.CLIENT_URL,
 ].filter(Boolean) as string[]
+
+// Debug logs for production troubleshooting
+app.use((req, _res, next) => {
+  console.log('🌍 Origin:', req.headers.origin)
+  console.log('📌 Method:', req.method, 'URL:', req.originalUrl)
+  next()
+})
 
 // Security & Logging
 app.use(helmet())
@@ -28,7 +35,11 @@ app.use(
       // Allow requests with no origin (Postman, mobile apps, server-to-server)
       if (!origin) return callback(null, true)
 
-      if (allowedOrigins.includes(origin)) {
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') // Allow Vercel preview & deployed frontend
+
+      if (isAllowed) {
         return callback(null, true)
       }
 
@@ -39,6 +50,9 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 )
+
+// Handle preflight requests explicitly
+app.options('*', cors())
 
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
@@ -68,7 +82,7 @@ app.use(errorHandler)
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
   console.log(`📊 Environment: ${process.env.NODE_ENV ?? 'development'}`)
-  console.log(`🌍 Allowed origins:`, allowedOrigins)
+  console.log('✅ Allowed Origins:', allowedOrigins)
 })
 
 export default app
