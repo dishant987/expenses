@@ -136,5 +136,3 @@ Finance/
 ---
 
 *Built with ❤️ for Modern Web Development.*
-
-We chose Drizzle ORM for faster database performance and shadcn/ui for a custom, premium look that generic libraries can't match. TanStack Query was used to automate state management and caching, while a robust RBAC system provides professional security across three user roles. This setup prioritizes a high-performance, scalable codebase over quick, "copy-paste" shortcuts.
