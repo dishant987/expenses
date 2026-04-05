@@ -28,10 +28,10 @@ export async function listTransactions(query: ListQuery) {
     filters.push(or(
       ilike(transactions.category, `%${query.search}%`),
       ilike(transactions.notes, `%${query.search}%`)
-    ))
+    )!)
   }
 
-  const where = filters.length > 1 ? and(...filters)! : filters[0]!
+  const where = and(...filters)
 
   const [txs, [{ total }]] = await Promise.all([
     db.query.transactions.findMany({

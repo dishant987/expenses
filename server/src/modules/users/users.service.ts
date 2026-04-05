@@ -23,10 +23,10 @@ export async function listUsers(query: ListUsersQuery) {
     filters.push(or(
       ilike(users.name, `%${query.search}%`),
       ilike(users.email, `%${query.search}%`)
-    ))
+    )!)
   }
 
-  const where = filters.length > 1 ? and(...filters)! : filters[0]!
+  const where = and(...filters)
 
   const [usersList, [{ total }]] = await Promise.all([
     db.select({
@@ -109,18 +109,31 @@ export async function bulkSoftDeleteUsers(ids: string[]) {
   await db.update(users).set({ deletedAt: new Date() }).where(inArray(users.id, ids))
 }
 
-export async function listDeletedUsers() {
-  return db.select({
-    id: users.id,
-    name: users.name,
-    email: users.email,
-    role: users.role,
-    status: users.status,
-    deletedAt: users.deletedAt,
-  })
-    .from(users)
-    .where(isNotNull(users.deletedAt))
-    .orderBy(desc(users.deletedAt))
+export async function listDeletedUsers(query: { page?: string, limit?: string }) {
+  const page = Math.max(1, parseInt(query.page ?? '1'))
+  const limit = Math.min(100, parseInt(query.limit ?? '20'))
+  const offset = (page - 1) * limit
+
+  const where = isNotNull(users.deletedAt)
+
+  const [usersList, [{ total }]] = await Promise.all([
+    db.select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      status: users.status,
+      deletedAt: users.deletedAt,
+    })
+      .from(users)
+      .where(where)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(users.deletedAt)),
+    db.select({ total: count() }).from(users).where(where)
+  ])
+
+  return { users: usersList, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } }
 }
 
 export async function restoreUsers(ids: string[]) {
